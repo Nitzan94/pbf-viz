@@ -1,0 +1,28 @@
+MAIN BUILDING:
+- Dimensions: 130m long x 80m wide
+- Height: 8m at center (sloped roof with skylights)
+- Structure: Divided into 2 SEPARATE HALLS by solid opaque wall in middle
+- Each hall contains 6 circular tanks (arranged in 2 rows of 3)
+- Total internal tanks: 12 (6 per hall)
+- External migration tanks: 4 circular tanks outside building
+
+TANK SPECIFICATIONS:
+- Diameter: 16m each
+- Height: 1.8m
+- Volume: 350 cubic meters
+- Material: Blue fiberglass
+- Spacing: 3m between tanks
+
+BUILDING FEATURES:
+- Walls: Tinted semi-transparent glass (blue-green tint)
+- Roof: Sloped with skylights along center ridge for natural light
+- Floor: Light gray epoxy with blue directional lines
+- LED lighting along tank edges
+- Digital monitoring screens
+- Stainless steel railings
+- Plants along walkways
+
+QUARANTINE BUILDING (separate):
+- Dimensions: 25m wide x 50m deep
+- Contains 14 smaller circular tanks
+- Tank diameter: 5-6m each

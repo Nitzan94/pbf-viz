@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
       prompt,
       apiKey,
       includeContext = true,
+      customContext,
       aspectRatio = '16:9',
       imageSize = '2K',
       editImage,
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
     // Build prompt with optional context injection
     // When reference image provided, skip text context to avoid conflicts
     const shouldIncludeContext = includeContext && !referenceImage;
-    const finalPrompt = buildPromptWithContext(prompt, shouldIncludeContext);
+    const finalPrompt = buildPromptWithContext(prompt, shouldIncludeContext, customContext);
 
     // Build content parts
     const contents: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];

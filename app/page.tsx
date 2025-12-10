@@ -1,11 +1,17 @@
 // ABOUTME: Main page for PBF Visualization Studio v2
-// ABOUTME: Dual mode: Chat with AI OR direct prompt, plus reference images
+// ABOUTME: Agent-native: loads 3 contexts, passes to chat API
 
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { INITIAL_ASSISTANT_MESSAGE } from '@/lib/prompts';
+import {
+  STORAGE_KEYS,
+  DEFAULT_FACILITY_SPECS,
+  DEFAULT_DESIGN_GUIDELINES,
+  DEFAULT_COMPANY_CONTEXT,
+} from '@/lib/context';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -13,6 +19,16 @@ interface Message {
 }
 
 type Mode = 'chat' | 'direct';
+
+const STORAGE_KEY = 'pbf-viz-state';
+
+interface PersistedState {
+  apiKey: string;
+  messages: Message[];
+  history: string[];
+  generatedImage: string | null;
+  mode: Mode;
+}
 
 export default function Home() {
   const [apiKey, setApiKey] = useState('');
@@ -40,9 +56,72 @@ export default function Home() {
   const [editPrompt, setEditPrompt] = useState('');
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [history, setHistory] = useState<string[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+
+  // 3 contexts for agent-native architecture
+  const [facilitySpecs, setFacilitySpecs] = useState(DEFAULT_FACILITY_SPECS);
+  const [designGuidelines, setDesignGuidelines] = useState(DEFAULT_DESIGN_GUIDELINES);
+  const [companyContext, setCompanyContext] = useState(DEFAULT_COMPANY_CONTEXT);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load persisted state on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const state: PersistedState = JSON.parse(saved);
+        if (state.apiKey) setApiKey(state.apiKey);
+        if (state.messages?.length > 0) setMessages(state.messages);
+        if (state.history?.length > 0) setHistory(state.history);
+        if (state.generatedImage) setGeneratedImage(state.generatedImage);
+        if (state.mode) setMode(state.mode);
+      }
+    } catch {
+      // Ignore parse errors
+    }
+    setHydrated(true);
+  }, []);
+
+  // Load all 3 contexts: localStorage > server file > default
+  useEffect(() => {
+    const loadOneContext = async (
+      key: keyof typeof STORAGE_KEYS,
+      file: string,
+      defaultVal: string,
+      setter: (val: string) => void
+    ) => {
+      // Check localStorage first
+      const saved = localStorage.getItem(STORAGE_KEYS[key]);
+      if (saved) {
+        setter(saved);
+        return;
+      }
+      // Try server file
+      try {
+        const res = await fetch(file);
+        if (res.ok) {
+          setter(await res.text());
+          return;
+        }
+      } catch {
+        // Fall through to default
+      }
+      setter(defaultVal);
+    };
+
+    loadOneContext('facilitySpecs', '/facility-specs.txt', DEFAULT_FACILITY_SPECS, setFacilitySpecs);
+    loadOneContext('designGuidelines', '/design-guidelines.txt', DEFAULT_DESIGN_GUIDELINES, setDesignGuidelines);
+    loadOneContext('companyContext', '/company-context.txt', DEFAULT_COMPANY_CONTEXT, setCompanyContext);
+  }, []);
+
+  // Persist state on changes
+  useEffect(() => {
+    if (!hydrated) return;
+    const state: PersistedState = { apiKey, messages, history, generatedImage, mode };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }, [apiKey, messages, history, generatedImage, mode, hydrated]);
 
   // Auto-scroll chat
   useEffect(() => {
@@ -85,7 +164,13 @@ export default function Home() {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newMessages, apiKey }),
+        body: JSON.stringify({
+          messages: newMessages,
+          apiKey,
+          facilitySpecs,
+          designGuidelines,
+          companyContext,
+        }),
       });
 
       if (!response.ok) {
@@ -152,6 +237,7 @@ export default function Home() {
           prompt,
           apiKey,
           includeContext: mode === 'direct' ? includeContext : false,
+          customContext: facilitySpecs,
           aspectRatio,
           imageSize: resolution,
           referenceImage,
@@ -216,6 +302,21 @@ export default function Home() {
   const clearReference = () => {
     setReferenceImage(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleClearChat = () => {
+    setMessages([{ role: 'assistant', content: INITIAL_ASSISTANT_MESSAGE }]);
+    setExtractedPrompt(null);
+  };
+
+  const handleClearAll = () => {
+    if (!window.confirm('Clear all data including history?')) return;
+    setMessages([{ role: 'assistant', content: INITIAL_ASSISTANT_MESSAGE }]);
+    setHistory([]);
+    setGeneratedImage(null);
+    setExtractedPrompt(null);
+    setError(null);
+    localStorage.removeItem(STORAGE_KEY);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -320,9 +421,18 @@ export default function Home() {
             {mode === 'chat' ? (
               /* Chat Mode */
               <div className="glass-panel rounded-2xl p-5 flex flex-col h-[calc(100vh-280px)] animate-fade-in-up">
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--pbf-ocean)] mb-3">
-                  Chat with AI Assistant
-                </h2>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--pbf-ocean)]">
+                    Chat with AI Assistant
+                  </h2>
+                  <button
+                    onClick={handleClearChat}
+                    className="text-xs text-[var(--pbf-navy)]/50 hover:text-[var(--pbf-ocean)] transition"
+                    title="Clear chat"
+                  >
+                    Clear
+                  </button>
+                </div>
 
                 <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-2">
                   {messages.map((msg, idx) => (
@@ -593,9 +703,18 @@ export default function Home() {
             {/* History */}
             {history.length > 0 && (
               <div className="glass-panel rounded-2xl p-6 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--pbf-ocean)] mb-4">
-                  Recent Generations
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--pbf-ocean)]">
+                    Recent Generations
+                  </h3>
+                  <button
+                    onClick={handleClearAll}
+                    className="text-xs text-[var(--pbf-navy)]/50 hover:text-red-500 transition"
+                    title="Clear all data"
+                  >
+                    Clear All
+                  </button>
+                </div>
                 <div className="flex gap-3 overflow-x-auto pb-2">
                   {history.map((img, idx) => (
                     <button

@@ -1,0 +1,77 @@
+# Pure Blue Fish (PBF) - Company Context
+
+## Company Overview
+Pure Blue Fish (PBF) is an Israeli aquaculture company pioneering Zero Water Discharge (ZWD) Recirculating Aquaculture Systems for marine fish production.
+
+- Founded: 2016
+- HQ: Binyamina, Israel
+- Mission: "Saving the Ocean & Feeding the World"
+- Website: purebluefish.com
+
+## Leadership
+- Igar Avrech - Founder & Chairman
+- Yuval Weiss - CEO
+- Ehud Brill - Director of Technologies / CTO (Marine Biologist)
+
+## Current Status (December 2025)
+
+### Israel - Binyamina Facility
+- Status: OPERATIONAL
+- Capacity: 125 tonnes/year
+- Species: Red Drum (Sciaenops ocellatus) only
+- Purpose: Technology proof-of-concept, prototype for future expansion
+
+### USA - South Carolina Facility
+- Status: NOT STARTED - Fundraising phase
+- Location: Matthews Industrial Park, Orangeburg County, SC
+- Target construction start: February 2026
+- Fundraising target: $20-30M
+- Planned capacity: 5,000 tonnes/year
+- Species: Red Drum + Yellowtail Kingfish
+
+## Technology: ZWD-RAS
+
+PBF's core innovation is completing BOTH the nitrogen AND carbon cycles using biological processes, enabling true zero water discharge. Standard RAS only handles partial cycles.
+
+### ZWD vs Standard RAS
+
+| Feature | Standard RAS | PBF ZWD-RAS |
+|---------|-------------|-------------|
+| Daily water exchange | 3-30% | <1% (evaporation only) |
+| Nitrogen cycle | Partial | Complete (aerobic + anaerobic) |
+| External water source needed | Yes | No, can be anywhere |
+| Discharge to environment | Yes | Zero |
+| Location flexibility | Limited to coast | Unlimited |
+
+### Core IP Components
+1. Biological Water Treatment (aerobic + anaerobic reactors)
+2. Custom-Designed Equipment (foam fractionator, pH control, ozone sterilization)
+3. Engineering Innovations (gravity-driven flow, horizontal well pumps)
+
+## Value Proposition
+
+### For Investors
+1. Only proven commercial ZWD technology globally
+2. Location flexibility - build near markets, not coasts
+3. Premium species with high margins (yellowtail $18-20/kg)
+4. ESG/sustainability story - zero environmental discharge
+5. Simplified permitting vs coastal aquaculture
+
+### For Markets
+1. Local, fresh fish (hours not days)
+2. Zero antibiotics, microplastics, mercury, heavy metals
+3. Sustainable, eco-friendly production
+4. Consistent supply year-round
+5. Premium quality for high-end restaurants
+
+## Species
+
+### Red Drum
+- Market price: $12-12.50/kg
+- Sweet, mild flavor, white meat
+- Growth to market: 11 months
+
+### Yellowtail Kingfish
+- Market price: $18-20/kg
+- Sushi-grade, premium restaurants
+- Growth to market: 12-18 months

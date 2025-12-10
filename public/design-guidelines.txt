@@ -1,0 +1,30 @@
+# Pure Blue Fish - Design Guidelines
+
+## Concept
+High-tech aquaculture facility, NOT agricultural/farm aesthetic.
+Clean, modern, professional appearance. Premium, futuristic feel.
+
+## Color Palette
+| Color | Hex | Usage |
+|-------|-----|-------|
+| Pure Blue | #0066CC | Tanks, accents |
+| Turquoise | #008B8B | Water, atmosphere |
+| White | #F5F5F5 | Floors, walls |
+| Gray | #4A4A4A | Steel, frames |
+| Green | #228B22 | Plants |
+
+## Required Elements
+- Light gray epoxy floor with blue directional lines
+- Digital monitoring screens on walls
+- Workers in white lab coats (when showing people)
+- Plants along walkways
+- Blue LED lighting on tank edges
+- Clear blue water with visible fish
+- Stainless steel railings and catwalks
+
+## MUST AVOID
+- Farm/agricultural aesthetic (hay, dirt, rust)
+- Murky or green water
+- Messy exposed pipes and wiring
+- Dark, industrial atmosphere
+- Worn or weathered appearance

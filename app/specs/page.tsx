@@ -1,100 +1,167 @@
-// ABOUTME: Specification documents editor page
-// ABOUTME: Tabs for facility spec, company context, and AI context - read/write via API
+// ABOUTME: Context editor page with 3 tabs
+// ABOUTME: Each context has localStorage override with server file fallback
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import {
+  STORAGE_KEYS,
+  DEFAULT_FACILITY_SPECS,
+  DEFAULT_DESIGN_GUIDELINES,
+  DEFAULT_COMPANY_CONTEXT,
+} from '@/lib/context';
 
-type DocId = 'facility' | 'company' | 'context';
+type TabId = 'facilitySpecs' | 'designGuidelines' | 'companyContext';
 
 interface Tab {
-  id: DocId;
+  id: TabId;
   label: string;
   labelHe: string;
+  file: string;
+  defaultContent: string;
 }
 
 const TABS: Tab[] = [
-  { id: 'facility', label: 'Facility Spec', labelHe: 'מפרט מתקן' },
-  { id: 'company', label: 'Company Context', labelHe: 'הקשר חברה' },
-  { id: 'context', label: 'AI Context', labelHe: 'הקשר AI' },
+  {
+    id: 'facilitySpecs',
+    label: 'Facility Specs',
+    labelHe: 'מפרט טכני',
+    file: '/facility-specs.txt',
+    defaultContent: DEFAULT_FACILITY_SPECS,
+  },
+  {
+    id: 'designGuidelines',
+    label: 'Design Guidelines',
+    labelHe: 'הנחיות עיצוב',
+    file: '/design-guidelines.txt',
+    defaultContent: DEFAULT_DESIGN_GUIDELINES,
+  },
+  {
+    id: 'companyContext',
+    label: 'Company Context',
+    labelHe: 'הקשר חברה',
+    file: '/company-context.txt',
+    defaultContent: DEFAULT_COMPANY_CONTEXT,
+  },
 ];
 
 export default function SpecsPage() {
-  const [activeTab, setActiveTab] = useState<DocId>('facility');
-  const [content, setContent] = useState('');
-  const [originalContent, setOriginalContent] = useState('');
-  const [docName, setDocName] = useState('');
+  const [activeTab, setActiveTab] = useState<TabId>('facilitySpecs');
+  const [contents, setContents] = useState<Record<TabId, string>>({
+    facilitySpecs: '',
+    designGuidelines: '',
+    companyContext: '',
+  });
+  const [originals, setOriginals] = useState<Record<TabId, string>>({
+    facilitySpecs: '',
+    designGuidelines: '',
+    companyContext: '',
+  });
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const hasChanges = content !== originalContent;
+  const currentTab = TABS.find((t) => t.id === activeTab)!;
+  const hasChanges = contents[activeTab] !== originals[activeTab];
 
-  const loadDocument = useCallback(async (docId: DocId) => {
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
+  // Load all contexts on mount
+  useEffect(() => {
+    const loadAll = async () => {
+      const newContents: Record<TabId, string> = {
+        facilitySpecs: '',
+        designGuidelines: '',
+        companyContext: '',
+      };
+      const newOriginals: Record<TabId, string> = {
+        facilitySpecs: '',
+        designGuidelines: '',
+        companyContext: '',
+      };
 
-    try {
-      const response = await fetch(`/api/specs?doc=${docId}`);
-      const data = await response.json();
+      for (const tab of TABS) {
+        // Check localStorage first
+        const saved = localStorage.getItem(STORAGE_KEYS[tab.id]);
+        if (saved) {
+          newContents[tab.id] = saved;
+          newOriginals[tab.id] = saved;
+          continue;
+        }
 
-      if (!response.ok) throw new Error(data.error || 'Failed to load');
+        // Try server file
+        try {
+          const res = await fetch(tab.file);
+          if (res.ok) {
+            const text = await res.text();
+            newContents[tab.id] = text;
+            newOriginals[tab.id] = text;
+            continue;
+          }
+        } catch {
+          // Fall through
+        }
 
-      setContent(data.content);
-      setOriginalContent(data.content);
-      setDocName(data.name);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load document');
-    } finally {
+        // Use default
+        newContents[tab.id] = tab.defaultContent;
+        newOriginals[tab.id] = tab.defaultContent;
+      }
+
+      setContents(newContents);
+      setOriginals(newOriginals);
       setLoading(false);
-    }
+    };
+
+    loadAll();
   }, []);
 
-  useEffect(() => {
-    loadDocument(activeTab);
-  }, [activeTab, loadDocument]);
-
-  const handleSave = async () => {
-    setSaving(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
-      const response = await fetch(`/api/specs?doc=${activeTab}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to save');
-
-      setOriginalContent(content);
-      setSuccess(data.message);
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save');
-    } finally {
-      setSaving(false);
-    }
+  const handleSave = () => {
+    localStorage.setItem(STORAGE_KEYS[activeTab], contents[activeTab]);
+    setOriginals((prev) => ({ ...prev, [activeTab]: contents[activeTab] }));
+    setSuccess('Saved to your session');
+    setTimeout(() => setSuccess(null), 3000);
   };
 
   const handleDiscard = () => {
-    setContent(originalContent);
-    setError(null);
-    setSuccess(null);
+    setContents((prev) => ({ ...prev, [activeTab]: originals[activeTab] }));
   };
 
-  const handleTabChange = (newTab: DocId) => {
+  const handleReset = async () => {
+    if (!window.confirm('Reset to server default? Your changes will be lost.')) return;
+
+    localStorage.removeItem(STORAGE_KEYS[activeTab]);
+
+    // Reload from server
+    try {
+      const res = await fetch(currentTab.file);
+      if (res.ok) {
+        const text = await res.text();
+        setContents((prev) => ({ ...prev, [activeTab]: text }));
+        setOriginals((prev) => ({ ...prev, [activeTab]: text }));
+        setSuccess('Reset to default');
+        setTimeout(() => setSuccess(null), 3000);
+        return;
+      }
+    } catch {
+      // Fall through
+    }
+
+    // Use code default
+    setContents((prev) => ({ ...prev, [activeTab]: currentTab.defaultContent }));
+    setOriginals((prev) => ({ ...prev, [activeTab]: currentTab.defaultContent }));
+    setSuccess('Reset to default');
+    setTimeout(() => setSuccess(null), 3000);
+  };
+
+  const handleTabChange = (newTab: TabId) => {
     if (hasChanges) {
       const confirmed = window.confirm('You have unsaved changes. Discard and switch tabs?');
       if (!confirmed) return;
     }
     setActiveTab(newTab);
+  };
+
+  const handleContentChange = (value: string) => {
+    setContents((prev) => ({ ...prev, [activeTab]: value }));
   };
 
   return (
@@ -107,18 +174,13 @@ export default function SpecsPage() {
               <Image src="/logo.png" alt="Pure Blue Fish" width={180} height={88} className="h-12 w-auto" />
             </Link>
             <div className="h-8 w-px bg-[var(--pbf-ocean)]/20" />
-            <span className="text-lg font-medium text-[var(--pbf-navy)]">Specification Editor</span>
+            <span className="text-lg font-medium text-[var(--pbf-navy)]">Context Editor</span>
           </div>
           <nav className="flex items-center gap-6">
-            <Link
-              href="/"
-              className="text-sm text-[var(--pbf-navy)]/70 hover:text-[var(--pbf-ocean)] transition"
-            >
+            <Link href="/" className="text-sm text-[var(--pbf-navy)]/70 hover:text-[var(--pbf-ocean)] transition">
               Visualization Studio
             </Link>
-            <span className="text-sm text-[var(--pbf-ocean)] font-medium">
-              Specs Editor
-            </span>
+            <span className="text-sm text-[var(--pbf-ocean)] font-medium">Context Editor</span>
           </nav>
         </div>
       </header>
@@ -148,26 +210,27 @@ export default function SpecsPage() {
         <div className="glass-panel rounded-2xl p-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-lg font-semibold text-[var(--pbf-navy)]">{docName}</h2>
-              {hasChanges && (
-                <span className="text-xs text-amber-600 font-medium">Unsaved changes</span>
-              )}
+              <h2 className="text-lg font-semibold text-[var(--pbf-navy)]">{currentTab.label}</h2>
+              {hasChanges && <span className="text-xs text-amber-600 font-medium">Unsaved changes</span>}
             </div>
             <div className="flex gap-3">
+              <button
+                onClick={handleReset}
+                className="text-xs text-[var(--pbf-navy)]/50 hover:text-red-500 transition px-3 py-2"
+              >
+                Reset to Default
+              </button>
               {hasChanges && (
-                <button
-                  onClick={handleDiscard}
-                  className="btn-secondary px-4 py-2 rounded-lg text-sm font-medium"
-                >
+                <button onClick={handleDiscard} className="btn-secondary px-4 py-2 rounded-lg text-sm font-medium">
                   Discard
                 </button>
               )}
               <button
                 onClick={handleSave}
-                disabled={!hasChanges || saving}
+                disabled={!hasChanges}
                 className="btn-primary px-6 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
               >
-                {saving ? 'Saving...' : 'Save'}
+                Save
               </button>
             </div>
           </div>
@@ -178,20 +241,13 @@ export default function SpecsPage() {
             </div>
           ) : (
             <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
+              value={contents[activeTab]}
+              onChange={(e) => handleContentChange(e.target.value)}
               className="input-premium w-full h-[60vh] px-4 py-4 rounded-xl text-sm font-mono resize-none"
-              placeholder="Document content..."
-              dir={activeTab === 'facility' ? 'rtl' : 'ltr'}
+              placeholder="Enter context..."
             />
           )}
 
-          {/* Status Messages */}
-          {error && (
-            <div className="mt-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
-              {error}
-            </div>
-          )}
           {success && (
             <div className="mt-4 p-4 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm">
               {success}
@@ -201,9 +257,9 @@ export default function SpecsPage() {
 
         {/* Help Text */}
         <div className="mt-6 text-center text-sm text-[var(--pbf-navy)]/50">
-          {activeTab === 'facility' && 'Hebrew facility specifications - dimensions, layouts, technical details'}
-          {activeTab === 'company' && 'English company context - about PBF, technology, team'}
-          {activeTab === 'context' && 'TypeScript code - context injected into AI image generation prompts'}
+          {activeTab === 'facilitySpecs' && 'Technical measurements - dimensions, tank specs, building features'}
+          {activeTab === 'designGuidelines' && 'Visual style guidelines - colors, materials, atmosphere, what to avoid'}
+          {activeTab === 'companyContext' && 'About PBF - mission, technology, facilities, value proposition'}
         </div>
       </main>
     </div>

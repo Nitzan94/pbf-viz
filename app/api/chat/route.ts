@@ -1,13 +1,18 @@
 // ABOUTME: Streaming chat API route for Gemini Pro 3
-// ABOUTME: Handles conversation for prompt crafting with PBF context
+// ABOUTME: Agent-native architecture - receives 3 contexts, builds dynamic system prompt
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextRequest } from 'next/server';
-import { CHAT_SYSTEM_PROMPT } from '@/lib/prompts';
+import { buildChatSystemPrompt } from '@/lib/prompts';
+import {
+  DEFAULT_FACILITY_SPECS,
+  DEFAULT_DESIGN_GUIDELINES,
+  DEFAULT_COMPANY_CONTEXT,
+} from '@/lib/context';
 
 export async function POST(request: NextRequest) {
   try {
-    const { messages, apiKey } = await request.json();
+    const { messages, apiKey, facilitySpecs, designGuidelines, companyContext } = await request.json();
 
     if (!apiKey) {
       return new Response(JSON.stringify({ error: 'API key required' }), {
@@ -23,10 +28,17 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Build system prompt with all 3 contexts (use defaults if not provided)
+    const systemPrompt = buildChatSystemPrompt(
+      facilitySpecs || DEFAULT_FACILITY_SPECS,
+      designGuidelines || DEFAULT_DESIGN_GUIDELINES,
+      companyContext || DEFAULT_COMPANY_CONTEXT
+    );
+
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
       model: 'gemini-3-pro-preview',
-      systemInstruction: CHAT_SYSTEM_PROMPT,
+      systemInstruction: systemPrompt,
     });
 
     // Convert messages to Gemini format, filtering out leading assistant messages
