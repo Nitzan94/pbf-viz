@@ -50,14 +50,20 @@ export async function POST(request: NextRequest) {
         },
       });
     } else if (referenceImage) {
-      contents.push({ text: 'CRITICAL: Follow this architectural floor plan EXACTLY. Match the exact layout, position of tanks, walls, and structure shown in this blueprint:' });
-      const base64Data = referenceImage.split(',')[1];
-      contents.push({
-        inlineData: {
-          mimeType: 'image/png',
-          data: base64Data,
-        },
-      });
+      // Only process if it's a base64 data URL
+      if (referenceImage.startsWith('data:')) {
+        contents.push({ text: 'CRITICAL: Follow this architectural floor plan EXACTLY. Match the exact layout, position of tanks, walls, and structure shown in this blueprint:' });
+        const mimeMatch = referenceImage.match(/data:([^;]+);/);
+        const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+        const base64Data = referenceImage.split(',')[1];
+        contents.push({
+          inlineData: {
+            mimeType,
+            data: base64Data,
+          },
+        });
+      }
+      // Skip non-base64 URLs - they can't be sent to Gemini
     }
 
     // Add the prompt

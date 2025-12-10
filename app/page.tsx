@@ -12,6 +12,7 @@ import {
   DEFAULT_DESIGN_GUIDELINES,
   DEFAULT_COMPANY_CONTEXT,
 } from '@/lib/context';
+import { saveImage, getAllImages, clearAllImages } from '@/lib/imageStore';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -25,7 +26,7 @@ const STORAGE_KEY = 'pbf-viz-state';
 interface PersistedState {
   apiKey: string;
   messages: Message[];
-  history: string[];
+  // history moved to IndexedDB
   generatedImage: string | null;
   mode: Mode;
 }
@@ -69,13 +70,13 @@ export default function Home() {
 
   // Load persisted state on mount
   useEffect(() => {
+    // Load from localStorage (no images)
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const state: PersistedState = JSON.parse(saved);
         if (state.apiKey) setApiKey(state.apiKey);
         if (state.messages?.length > 0) setMessages(state.messages);
-        if (state.history?.length > 0) setHistory(state.history);
         if (state.generatedImage) setGeneratedImage(state.generatedImage);
         if (state.mode) setMode(state.mode);
       }
@@ -83,14 +84,37 @@ export default function Home() {
       // Ignore parse errors
     }
 
+    // Load history from IndexedDB
+    getAllImages()
+      .then((images) => {
+        if (images.length > 0) {
+          setHistory(images.map((img) => img.data));
+        }
+      })
+      .catch(() => {});
+
     // Load selected blueprint from /blueprints page
     const selectedBlueprint = localStorage.getItem('pbf-selected-blueprint');
     if (selectedBlueprint) {
       try {
         const bp = JSON.parse(selectedBlueprint);
-        setReferenceImage(bp.url);
         setBlueprintName(bp.name);
         localStorage.removeItem('pbf-selected-blueprint'); // Clear after loading
+
+        // Convert URL to base64 if not already a data URL
+        if (bp.url.startsWith('data:')) {
+          setReferenceImage(bp.url);
+        } else {
+          // Fetch and convert to base64
+          fetch(bp.url)
+            .then(res => res.blob())
+            .then(blob => {
+              const reader = new FileReader();
+              reader.onload = () => setReferenceImage(reader.result as string);
+              reader.readAsDataURL(blob);
+            })
+            .catch(() => setReferenceImage(bp.url)); // Fallback
+        }
       } catch {
         // Ignore
       }
@@ -131,12 +155,21 @@ export default function Home() {
     loadOneContext('companyContext', '/company-context.txt', DEFAULT_COMPANY_CONTEXT, setCompanyContext);
   }, []);
 
-  // Persist state on changes
+  // Persist state on changes (images stored in IndexedDB, not localStorage)
   useEffect(() => {
     if (!hydrated) return;
-    const state: PersistedState = { apiKey, messages, history, generatedImage, mode };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [apiKey, messages, history, generatedImage, mode, hydrated]);
+    const state: PersistedState = { apiKey, messages, generatedImage, mode };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      // Quota exceeded - clear and try with minimal state
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ apiKey, messages: [], generatedImage: null, mode }));
+      } catch {
+        // Give up
+      }
+    }
+  }, [apiKey, messages, generatedImage, mode, hydrated]);
 
   // Auto-scroll chat
   useEffect(() => {
@@ -263,7 +296,9 @@ export default function Home() {
       if (!response.ok) throw new Error(data.error || 'Image generation failed');
 
       setGeneratedImage(data.image);
-      setHistory((prev) => [data.image, ...prev.slice(0, 9)]);
+      setHistory((prev) => [data.image, ...prev.slice(0, 19)]);
+      // Save to IndexedDB
+      saveImage(`img-${Date.now()}`, data.image).catch(() => {});
       if (mode === 'chat') setExtractedPrompt(null);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Image generation error');
@@ -296,7 +331,9 @@ export default function Home() {
       if (!response.ok) throw new Error(data.error || 'Refinement failed');
 
       setGeneratedImage(data.image);
-      setHistory((prev) => [data.image, ...prev.slice(0, 9)]);
+      setHistory((prev) => [data.image, ...prev.slice(0, 19)]);
+      // Save to IndexedDB
+      saveImage(`img-${Date.now()}`, data.image).catch(() => {});
       setEditPrompt('');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Refinement error');
@@ -333,6 +370,7 @@ export default function Home() {
     setExtractedPrompt(null);
     setError(null);
     localStorage.removeItem(STORAGE_KEY);
+    clearAllImages().catch(() => {}); // Clear IndexedDB
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

@@ -5,12 +5,12 @@ export const PROMPT_ENGINEERING_GUIDELINES = `
 IMAGE PROMPT BEST PRACTICES:
 
 STRUCTURE:
-1. Camera angle/perspective (aerial, interior, exterior, close-up)
-2. Lighting conditions (time of day, natural/artificial, mood)
+1. Camera angle/perspective (aerial, interior, exterior, close-up) + lens type (wide-angle, 85mm, drone)
+2. Lighting setup - be explicit (golden hour, soft diffused, three-point softbox, backlit)
 3. Architectural style keywords (modern, industrial, high-tech)
 4. Materials and textures (glass, steel, concrete, water)
 5. Atmosphere (clean, premium, futuristic)
-6. Technical style ("photorealistic architectural visualization")
+6. Technical style ("photorealistic architectural visualization", "4k resolution")
 
 GOOD EXAMPLES:
 - "Aerial drone view at 45-degree angle of a modern aquaculture facility at golden hour, showing 12 circular blue fiberglass tanks arranged in 2 rows of 6 inside a glass-walled building, warm sunset lighting, photorealistic architectural visualization"
@@ -21,6 +21,7 @@ AVOID:
 - Missing perspective/camera info
 - Conflicting style elements
 - Too short (under 50 words usually = poor results)
+- "8k resolution" - max is 4k, use "4k resolution" or "high resolution" instead
 `;
 
 // Build system prompt with all 3 contexts
