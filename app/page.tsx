@@ -57,6 +57,7 @@ export default function Home() {
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [history, setHistory] = useState<string[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [blueprintName, setBlueprintName] = useState<string | null>(null);
 
   // 3 contexts for agent-native architecture
   const [facilitySpecs, setFacilitySpecs] = useState(DEFAULT_FACILITY_SPECS);
@@ -81,6 +82,20 @@ export default function Home() {
     } catch {
       // Ignore parse errors
     }
+
+    // Load selected blueprint from /blueprints page
+    const selectedBlueprint = localStorage.getItem('pbf-selected-blueprint');
+    if (selectedBlueprint) {
+      try {
+        const bp = JSON.parse(selectedBlueprint);
+        setReferenceImage(bp.url);
+        setBlueprintName(bp.name);
+        localStorage.removeItem('pbf-selected-blueprint'); // Clear after loading
+      } catch {
+        // Ignore
+      }
+    }
+
     setHydrated(true);
   }, []);
 
@@ -301,6 +316,7 @@ export default function Home() {
 
   const clearReference = () => {
     setReferenceImage(null);
+    setBlueprintName(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -362,10 +378,16 @@ export default function Home() {
             <nav className="flex items-center gap-4">
               <span className="text-sm text-[var(--pbf-ocean)] font-medium">Studio</span>
               <a
+                href="/blueprints"
+                className="text-sm text-[var(--pbf-navy)]/70 hover:text-[var(--pbf-ocean)] transition"
+              >
+                Blueprints
+              </a>
+              <a
                 href="/specs"
                 className="text-sm text-[var(--pbf-navy)]/70 hover:text-[var(--pbf-ocean)] transition"
               >
-                Specs Editor
+                Context
               </a>
             </nav>
             <div className="h-6 w-px bg-[var(--pbf-ocean)]/20" />
@@ -566,22 +588,33 @@ export default function Home() {
                       className="hidden"
                     />
                     {referenceImage ? (
-                      <div className="relative rounded-xl overflow-hidden border border-[var(--pbf-turquoise)]/30">
-                        <Image src={referenceImage} alt="Reference" width={200} height={150} className="w-full h-24 object-cover" />
-                        <button
-                          onClick={clearReference}
-                          className="absolute top-2 right-2 w-6 h-6 bg-white/90 rounded-full flex items-center justify-center text-[var(--pbf-navy)] hover:bg-white"
-                        >
-                          x
-                        </button>
+                      <div className="space-y-2">
+                        <div className="relative rounded-xl overflow-hidden border border-[var(--pbf-turquoise)]/30">
+                          <Image src={referenceImage} alt="Reference" width={200} height={150} className="w-full h-24 object-cover" unoptimized />
+                          <button
+                            onClick={clearReference}
+                            className="absolute top-2 right-2 w-6 h-6 bg-white/90 rounded-full flex items-center justify-center text-[var(--pbf-navy)] hover:bg-white"
+                          >
+                            x
+                          </button>
+                        </div>
+                        {blueprintName && <p className="text-xs text-[var(--pbf-turquoise)] font-medium">{blueprintName}</p>}
                       </div>
                     ) : (
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="w-full py-3 rounded-xl border-2 border-dashed border-[var(--pbf-ocean)]/20 text-sm text-[var(--pbf-navy)]/60 hover:border-[var(--pbf-turquoise)] hover:bg-[var(--pbf-aqua-light)]/30 transition"
-                      >
-                        Upload reference / architectural plan
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="flex-1 py-3 rounded-xl border-2 border-dashed border-[var(--pbf-ocean)]/20 text-sm text-[var(--pbf-navy)]/60 hover:border-[var(--pbf-turquoise)] hover:bg-[var(--pbf-aqua-light)]/30 transition"
+                        >
+                          Upload
+                        </button>
+                        <a
+                          href="/blueprints"
+                          className="flex-1 py-3 rounded-xl border-2 border-[var(--pbf-ocean)]/20 text-sm text-[var(--pbf-navy)]/60 hover:border-[var(--pbf-turquoise)] hover:bg-[var(--pbf-aqua-light)]/30 transition text-center"
+                        >
+                          Choose Blueprint
+                        </a>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -604,22 +637,33 @@ export default function Home() {
                 </label>
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleReferenceUpload} className="hidden" />
                 {referenceImage ? (
-                  <div className="relative rounded-xl overflow-hidden border border-[var(--pbf-turquoise)]/30">
-                    <Image src={referenceImage} alt="Reference" width={200} height={150} className="w-full h-24 object-cover" />
-                    <button
-                      onClick={clearReference}
-                      className="absolute top-2 right-2 w-6 h-6 bg-white/90 rounded-full flex items-center justify-center text-[var(--pbf-navy)] hover:bg-white"
-                    >
-                      x
-                    </button>
+                  <div className="space-y-2">
+                    <div className="relative rounded-xl overflow-hidden border border-[var(--pbf-turquoise)]/30">
+                      <Image src={referenceImage} alt="Reference" width={200} height={150} className="w-full h-24 object-cover" unoptimized />
+                      <button
+                        onClick={clearReference}
+                        className="absolute top-2 right-2 w-6 h-6 bg-white/90 rounded-full flex items-center justify-center text-[var(--pbf-navy)] hover:bg-white"
+                      >
+                        x
+                      </button>
+                    </div>
+                    {blueprintName && <p className="text-xs text-[var(--pbf-turquoise)] font-medium">{blueprintName}</p>}
                   </div>
                 ) : (
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full py-3 rounded-xl border-2 border-dashed border-[var(--pbf-ocean)]/20 text-sm text-[var(--pbf-navy)]/60 hover:border-[var(--pbf-turquoise)] hover:bg-[var(--pbf-aqua-light)]/30 transition"
-                  >
-                    Upload reference image
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex-1 py-3 rounded-xl border-2 border-dashed border-[var(--pbf-ocean)]/20 text-sm text-[var(--pbf-navy)]/60 hover:border-[var(--pbf-turquoise)] hover:bg-[var(--pbf-aqua-light)]/30 transition"
+                    >
+                      Upload
+                    </button>
+                    <a
+                      href="/blueprints"
+                      className="flex-1 py-3 rounded-xl border-2 border-[var(--pbf-ocean)]/20 text-sm text-[var(--pbf-navy)]/60 hover:border-[var(--pbf-turquoise)] hover:bg-[var(--pbf-aqua-light)]/30 transition text-center"
+                    >
+                      Choose Blueprint
+                    </a>
+                  </div>
                 )}
               </div>
             )}
