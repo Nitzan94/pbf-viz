@@ -87,7 +87,7 @@ export default function HelpPage() {
                 <h3 className="font-medium text-[var(--pbf-turquoise)] mb-2">Chat with AI (מומלץ)</h3>
                 <p className="text-sm text-[var(--pbf-navy)]/70">
                   מדברים עם הבינה המלאכותית בעברית.
-                  היא שואלת שאלות אם צריך ויוצרת פרומפט מושלם.
+                  היא שואלת שאלות אם צריך ויוצרת פרומפט מקצועי.
                 </p>
               </div>
 

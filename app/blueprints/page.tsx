@@ -23,7 +23,21 @@ const DEFAULT_BLUEPRINTS: Blueprint[] = [
     id: 'main-building',
     name: 'Main Building Plan',
     url: '/blueprints/main-building-architectural_plan.jpg',
-    description: 'Architectural floor plan - 2 halls, 12 tanks',
+    description: '2 halls, 12 tanks (6 per hall)',
+    isCustom: false,
+  },
+  {
+    id: 'quarantine',
+    name: 'Quarantine Building',
+    url: '/blueprints/quarantine-plan.jpg',
+    description: '14 smaller tanks',
+    isCustom: false,
+  },
+  {
+    id: 'full-facility',
+    name: 'Full Facility Plan',
+    url: '/blueprints/full-facility-plan.png',
+    description: 'Main building + quarantine + external tanks',
     isCustom: false,
   },
 ];
