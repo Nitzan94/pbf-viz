@@ -427,6 +427,12 @@ export default function Home() {
               >
                 Context
               </a>
+              <a
+                href="/help"
+                className="text-sm text-[var(--pbf-navy)]/70 hover:text-[var(--pbf-ocean)] transition"
+              >
+                Help
+              </a>
             </nav>
             <div className="h-6 w-px bg-[var(--pbf-ocean)]/20" />
             <input
