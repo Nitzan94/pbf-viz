@@ -141,6 +141,9 @@ export default function BlueprintsPage() {
             <Link href="/" className="text-sm text-[var(--pbf-navy)]/70 hover:text-[var(--pbf-ocean)] transition">
               Studio
             </Link>
+            <Link href="/inspiration" className="text-sm text-[var(--pbf-navy)]/70 hover:text-[var(--pbf-ocean)] transition">
+              Inspiration
+            </Link>
             <Link href="/specs" className="text-sm text-[var(--pbf-navy)]/70 hover:text-[var(--pbf-ocean)] transition">
               Context Editor
             </Link>

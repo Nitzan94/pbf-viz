@@ -416,6 +416,12 @@ export default function Home() {
             <nav className="flex items-center gap-4">
               <span className="text-sm text-[var(--pbf-ocean)] font-medium">Studio</span>
               <a
+                href="/inspiration"
+                className="text-sm text-[var(--pbf-navy)]/70 hover:text-[var(--pbf-ocean)] transition"
+              >
+                Inspiration
+              </a>
+              <a
                 href="/blueprints"
                 className="text-sm text-[var(--pbf-navy)]/70 hover:text-[var(--pbf-ocean)] transition"
               >
@@ -556,6 +562,25 @@ export default function Home() {
             ) : (
               /* Direct Mode */
               <div className="space-y-4 animate-fade-in-up">
+                {/* Blueprint Active Warning Banner */}
+                {referenceImage && (
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-amber-50 border border-amber-300">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      <span className="text-sm font-medium text-amber-800">
+                        Blueprint active: {blueprintName || 'Custom image'}
+                      </span>
+                    </div>
+                    <button
+                      onClick={clearReference}
+                      className="px-3 py-1 text-xs font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg transition"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
                 <div className="glass-panel rounded-2xl p-5">
                   <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--pbf-ocean)] mb-3">
                     Your Prompt

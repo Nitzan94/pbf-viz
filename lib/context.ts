@@ -12,9 +12,10 @@ export const STORAGE_KEYS = {
 export const DEFAULT_FACILITY_SPECS = `MAIN BUILDING:
 - Dimensions: 130m long x 80m wide
 - Height: 8m at center (sloped roof with skylights)
-- Structure: Divided into 2 SEPARATE HALLS by solid opaque wall in middle
-- Each hall contains 6 circular tanks (arranged in 2 rows of 3)
-- Total internal tanks: 12 (6 per hall)
+- Structure: Divided into 2 SEPARATE HALLS by solid OPAQUE wall in middle
+- Each hall contains 6 circular tanks in a SINGLE ROW along the length
+- Total internal tanks: 12 (6 per hall, arranged linearly in one row each)
+- Halls completely separated - opaque wall, NO visibility between halls
 - External migration tanks: 4 circular tanks outside building
 
 TANK SPECIFICATIONS:

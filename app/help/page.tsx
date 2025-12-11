@@ -21,6 +21,9 @@ export default function HelpPage() {
             <Link href="/" className="text-sm text-[var(--pbf-navy)]/70 hover:text-[var(--pbf-ocean)] transition">
               Studio
             </Link>
+            <Link href="/inspiration" className="text-sm text-[var(--pbf-navy)]/70 hover:text-[var(--pbf-ocean)] transition">
+              Inspiration
+            </Link>
             <Link href="/blueprints" className="text-sm text-[var(--pbf-navy)]/70 hover:text-[var(--pbf-ocean)] transition">
               Blueprints
             </Link>
